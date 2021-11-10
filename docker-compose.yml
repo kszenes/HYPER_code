@@ -1,0 +1,11 @@
+version: "3.3"
+
+services:
+  hg_tools:
+    image: com.huawei.zurich/univeristy-challenge:do-not-release
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    volumes:
+      - ./docker-output:/app/output
+
