@@ -78,6 +78,10 @@ double compute_condition(int num_vertices, int num_partitions, double epsilon) {
 }
 
 int main(int argc, char* argv[]) {
+  if (argc < 2) {
+    std::cerr << "Please provide .mtx file (e.g. $ ./a.out ../../../HYPER_PUBLIC/bcsstk21.mtx)" << std::endl;
+    return 0;
+  }
   int num_row, num_col;
   std::unique_ptr<double[]> matrix;
   std::tie(num_row, num_col, matrix) = read_mtx(argv[1]);
