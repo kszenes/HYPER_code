@@ -1,5 +1,44 @@
 #include"includes.hpp"
 
+void coarsen(Hypergraph& graph, int u, int v) {
+
+  
+  // loop over incident nets
+  for (const int v_net : graph.incident_nets[v]) {
+    bool relink = true;
+    // find first and last element corresponding to net 
+    int first = graph.offset.offsets[v_net];
+    int last = graph.offset.offsets[v_net] + graph.offset.sizes[v_net] - 1;
+    // std::cout << "first = " << first << " last = " << last << std::endl; 
+    // loop over pins in net
+    for (int net_pin = first; net_pin < last; net_pin++) {
+      int current_pin = graph.offset.pins[net_pin];
+      // std::cout << "current_pin = " << current_pin << std::endl;
+      if (current_pin == u) {
+        relink = false;
+        std::cout << "u found" << std::endl;
+      } else if (current_pin == v) {
+        std::swap(graph.offset.pins[current_pin], graph.offset.pins[last]);
+        std::cout << "v found" << std::endl;
+        if (graph.offset.pins[current_pin] == u) {
+          relink = false;
+          std::cout << "u found" << std::endl;
+        }
+      }
+    }
+    if (!relink) {
+      graph.offset.sizes[v_net]--;
+    } else {
+      graph.offset.pins[last] = u;
+      graph.incident_nets[u].push_back(v_net);
+    }
+    std::cout << "Relink needed for net " << v_net << " : " << relink << std::endl;
+
+
+  }
+
+}
+
 /**
  * @brief Reads mtx file
  * 
@@ -17,7 +56,6 @@ void mtx2matrix(const std::string& filename, Hypergraph &graph) {
   file >> num_nets >> num_nodes >> num_pins;
 
   std::vector<std::vector<int>> incident_nets(num_nodes);
-  std::vector<int> pin_list(num_pins);
 
   graph.offset.num_pins = num_pins;
   std::vector<int> offsets(num_nets+1, 0);
@@ -158,19 +196,26 @@ int main(int argc, char* argv[]) {
   print_vec(graph.offset.pins);
   std::cout << "offsets" << std::endl;
   print_vec(graph.offset.offsets);
-
   std::cout << "sizes" << std::endl;
   print_vec(graph.offset.sizes);
-  std::cout << "incident_nets" << std::endl;
+  std::cout << std::endl;
 
-  for (int i = 0; i < graph.incident_nets.size(); i++) {
-    std::cout << "node " << i << std::endl;
-    for (auto j : graph.incident_nets[i]) {
-      std::cout << j << " ";
-    }
-    std::cout << std::endl;
-  }
+  graph.print_incident_list();
 
+  coarsen(graph, 0, 2);
+
+  std::cout << std::endl;
+  std::cout << "pins" << std::endl;
+  print_vec(graph.offset.pins);
+  std::cout << "offsets" << std::endl;
+  print_vec(graph.offset.offsets);
+  std::cout << "sizes" << std::endl;
+  print_vec(graph.offset.sizes);
+
+  graph.print_incident_list();
+
+
+  // std::cout << "in
   // graph.print_edges();
 
   // Print out matrix; rows = hyperedges, cols = vertices

@@ -19,13 +19,26 @@ public:
     std::vector<std::vector<int>> incident_nets;
     // std::vector<std::vector<std::vector<int>>> *vertex_list;
 
-    std::vector<int> pin_list;
     
     Offset offset;
+
+    void print_incident_list() const;
 
 
 
 };
 
+void Hypergraph::print_incident_list() const {
+  std::cout << "incident_nets" << std::endl;
+  for (int i = 0; i < incident_nets.size(); i++)
+  {
+    std::cout << "node " << i << ":\t";
+    for (auto j : incident_nets[i])
+    {
+      std::cout << j << " ";
+    }
+    std::cout << std::endl;
+  }
+}
 
 #endif //HYPER_CODE_HYPERGRAPH_H
