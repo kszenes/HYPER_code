@@ -56,15 +56,15 @@ void Hypergraph::coarsen(int u, int v) {
     // std::cout << "first = " << first << " last = " << last << std::endl; 
     // loop over pins in net
     for (int net_pin = first; net_pin < last; net_pin++) {
-      int current_pin = offset.pins[net_pin];
+      int current_pin = offset.adjacency[net_pin];
       // std::cout << "current_pin = " << current_pin << std::endl;
       if (current_pin == u) {
         relink = false;
         std::cout << "u found" << std::endl;
       } else if (current_pin == v) {
-        std::swap(offset.pins[current_pin], offset.pins[last]);
+        std::swap(offset.adjacency[current_pin], offset.adjacency[last]);
         std::cout << "v found" << std::endl;
-        if (offset.pins[current_pin] == u) {
+        if (offset.adjacency[current_pin] == u) {
           relink = false;
           std::cout << "u found" << std::endl;
         }
@@ -73,7 +73,7 @@ void Hypergraph::coarsen(int u, int v) {
     
     if (relink) {
       // relink operation
-      offset.pins[last] = u;
+      offset.adjacency[last] = u;
       incident_nets[u].push_back(v_net);
     } else {
       // delete operation

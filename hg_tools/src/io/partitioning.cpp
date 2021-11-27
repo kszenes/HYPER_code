@@ -59,7 +59,7 @@ void mtx2matrix(const std::string& filename, Hypergraph &graph) {
 
   graph.incident_nets = incident_nets;
   graph.offset.sizes = sizes;
-  graph.offset.pins = pins;
+  graph.offset.adjacency = pins;
   graph.node_active = std::vector<bool>(num_nodes, 1);
 }
 
@@ -157,7 +157,7 @@ int main(int argc, char* argv[]) {
   int num_pins = graph.num_pins;
   
   std::cout << "pins" << std::endl;
-  print_vec(graph.offset.pins);
+  print_vec(graph.offset.adjacency);
   std::cout << "offsets" << std::endl;
   print_vec(graph.offset.offsets);
   std::cout << "sizes" << std::endl;
@@ -172,7 +172,7 @@ int main(int argc, char* argv[]) {
 
   std::cout << std::endl;
   std::cout << "pins" << std::endl;
-  print_vec(graph.offset.pins);
+  print_vec(graph.offset.adjacency);
   std::cout << "offsets" << std::endl;
   print_vec(graph.offset.offsets);
   std::cout << "sizes" << std::endl;

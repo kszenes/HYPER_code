@@ -12,7 +12,7 @@ public:
     std::vector<int> offsets;
     std::vector<int> sizes;
 
-    std::vector<int> pins;
+    std::vector<int> adjacency;
 
 };
 
