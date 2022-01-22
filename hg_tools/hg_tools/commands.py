@@ -2,7 +2,7 @@ from pathlib import Path
 
 import click
 
-from hg_tools.algorithm import random_partitioner
+from hg_tools.algorithm import random_partitioner, your_awesome_partitioner
 from hg_tools.io import Partition, read_hypergraph
 from hg_tools.evaluate import (
     calculate_load_imbalance,
@@ -37,7 +37,8 @@ def split(hg_filename, k, epsilon):
     hg_coo_matrix = read_hypergraph(filename)
 
     print("Run partitioner")
-    partition = random_partitioner(hg_coo_matrix, k, epsilon)
+    # partition = random_partitioner(hg_coo_matrix, k, epsilon)
+    partition = your_awesome_partitioner(hg_coo_matrix, k, epsilon)
 
     output_file = f"{graph_name}.{k}.output"
     print(f"Write {k}-partition to file: {output_file}.mtx")
