@@ -47,11 +47,16 @@ def your_awesome_partitioner(
 
     print(f'max_partition_size = {max_partition_size}')
 
-        
-
     # print(m_csr.toarray(), '\n')
 
     while True:
+        # if last partition put remaining vertices in
+        if len(partition_list) == k - 1:
+            diff = np.argwhere(vertex_partitioned_flag == 1).reshape(-1)
+            num_partitioned = num_partitioned + len(diff)
+            partition_list.append(diff)
+            break
+
         tmp = m_csr[:, current_largest_unsorted_edge_index].nonzero()[0] # get vertices pertaining to net
         current_largest_edge_array = tmp[vertex_partitioned_flag[tmp] == 1] # only select unpartitioned vertices
 
@@ -59,6 +64,8 @@ def your_awesome_partitioner(
         diff = current_largest_edge_array
 
 
+
+        # debug
         if len(partition_list) > k or num_partitioned > num_vertices or len(diff) > num_vertices - num_partitioned:
             print(f'num_partitioned = {num_partitioned}')
             print(f'num_partitions = {len(partition_list)}')
@@ -95,14 +102,14 @@ def your_awesome_partitioner(
             part = np.empty(0, dtype=int)
             current_partition_space = max_partition_size
 
-            if vertex_partitioned_flag.sum() == 0:
-                break
+            # if vertex_partitioned_flag.sum() == 0:
+            #     break
 
 
     # print(partition_list)
-    partition_list.append(part)
-    partition_list = [set(partitions) for partitions in partition_list]
+    # partition_list.append(part)
     print(f'num_partitioned = {num_partitioned}')
+    partition_list = [set(partitions) for partitions in partition_list]
     print(f'num_partitions = {len(partition_list)}')
     return Partition(num_vertices, k, partition_list)
 
