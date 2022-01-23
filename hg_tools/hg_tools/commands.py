@@ -12,9 +12,12 @@ from hg_tools.evaluate import (
 
 @click.command()
 @click.argument(
-    "hg-filename", type=click.Path(exists=True), required=True,
+    "hg-filename", type=click.Path(exists=True), required=True
 )
-@click.option("--K", type=int, help="Size of partition", required=True)
+# @click.option(
+#     "hg-filename", type=click.Path(exists=True), required=True, default=Path("/Users/kalmanszenes/code/HYPER_code/HYPER_PUBLIC/bcsstk21.mtx")
+# )
+@click.option("--K", type=int, help="Size of partition", required=True, default=2)
 @click.option(
     "--epsilon",
     type=float,
@@ -36,7 +39,7 @@ def split(hg_filename, k, epsilon):
     print(f"Reading file {filename}...")
     hg_coo_matrix = read_hypergraph(filename)
 
-    print("Run partitioner")
+    print("Run partitionerer")
     # partition = random_partitioner(hg_coo_matrix, k, epsilon)
     partition = your_awesome_partitioner(hg_coo_matrix, k, epsilon)
 
