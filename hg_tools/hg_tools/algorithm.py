@@ -1,11 +1,12 @@
 """Main module."""
 
 import numpy as np
+from numba import jit
+import time
 from numpy.random import shuffle
 from scipy.sparse import coo_matrix
 
 from hg_tools.io import Partition
-
 
 def your_awesome_partitioner(
     m: coo_matrix, k: int, epsilon: float  # noqa
@@ -40,74 +41,87 @@ def your_awesome_partitioner(
 
     current_largest_sorted_edge_index = 0
     current_largest_unsorted_edge_index = edge_indices_sorted[0, current_largest_sorted_edge_index]
-    partition_list = []
     num_partitioned = 0
-    part = np.empty(0, dtype=int) # needed placeholder
     current_partition_space = max_partition_size
 
     print(f'max_partition_size = {max_partition_size}')
 
     # print(m_csr.toarray(), '\n')
 
-    while True:
-        # if last partition put remaining vertices in
-        if len(partition_list) == k - 1:
-            diff = np.argwhere(vertex_partitioned_flag == 1).reshape(-1)
-            num_partitioned = num_partitioned + len(diff)
-            partition_list.append(diff)
-            break
+    start = time.perf_counter()
+    #@jit(nopython = True, cache=True)
+    def partition(m_csr, k, num_partitioned, num_vertices, num_edges, max_partition_size, vertex_partitioned_flag, 
+        current_largest_unsorted_edge_index, current_partition_space, current_largest_sorted_edge_index, edge_partitioned_flag, edge_indices_sorted):
 
-        tmp = m_csr[:, current_largest_unsorted_edge_index].nonzero()[0] # get vertices pertaining to net
-        current_largest_edge_array = tmp[vertex_partitioned_flag[tmp] == 1] # only select unpartitioned vertices
+        part = np.empty(0, dtype=int) # needed placeholder
+        partition_list = []
 
-        # diff = np.setdiff1d(current_largest_edge_array, part, assume_unique=True) # find 
-        diff = current_largest_edge_array
+        while True:
 
-
-
-        # debug
-        if len(partition_list) > k or num_partitioned > num_vertices or len(diff) > num_vertices - num_partitioned:
-            print(f'num_partitioned = {num_partitioned}')
-            print(f'num_partitions = {len(partition_list)}')
-            raise Exception('Partition list too large')
-
-        # if the whole edge fits into the partition
-        if diff.shape[0] <= current_partition_space:
-            part = np.concatenate((part, diff), axis=None)
-            vertex_partitioned_flag[diff] = 0
-            edge_partitioned_flag[current_largest_unsorted_edge_index] = 0
-            current_partition_space = current_partition_space - diff.shape[0]
-
-
-            # increment the largest edge index if not arrived at the end
-            if current_largest_sorted_edge_index + 1 < num_edges:
-                current_largest_sorted_edge_index = current_largest_sorted_edge_index + 1
-                current_largest_unsorted_edge_index = edge_indices_sorted[0, current_largest_sorted_edge_index]
-
-            else:
+            # if last partition put remaining vertices in
+            if len(partition_list) == k - 1:
+                diff = np.argwhere(vertex_partitioned_flag == 1).reshape(-1)
+                num_partitioned = num_partitioned + len(diff)
+                partition_list.append(diff)
                 break
 
-        # else put as much as does fit hence filling partition and create new one
-        else:
-            rounded_space = int(current_partition_space)
-            part = np.concatenate((part, diff[:rounded_space]), axis=None)
-            vertex_partitioned_flag[diff[:rounded_space]] = 0
-            # print(vertex_partitioned_flag)
-            partition_list.append(part)
-            num_partitioned = num_partitioned + len(part)
-            # print(partition_list)
-            print(f'new partition size: {len(part)}; partition_list: {len(partition_list)}; num_partitioned: {num_partitioned}')
+            tmp = m_csr[:, current_largest_unsorted_edge_index].nonzero()[0] # get vertices pertaining to net
+            current_largest_edge_array = tmp[vertex_partitioned_flag[tmp] == 1] # only select unpartitioned vertices
 
-            # create new part
-            part = np.empty(0, dtype=int)
-            current_partition_space = max_partition_size
+            # diff = np.setdiff1d(current_largest_edge_array, part, assume_unique=True) # find 
+            diff = current_largest_edge_array
 
-            # if vertex_partitioned_flag.sum() == 0:
-            #     break
 
+
+            # debug
+            if len(partition_list) > k or num_partitioned > num_vertices or len(diff) > num_vertices - num_partitioned:
+                print(f'num_partitioned = {num_partitioned}')
+                print(f'num_partitions = {len(partition_list)}')
+                raise Exception('Partition list too large')
+
+            # if the whole edge fits into the partition
+            if diff.shape[0] <= current_partition_space:
+                part = np.concatenate((part, diff), axis=None)
+                vertex_partitioned_flag[diff] = 0
+                edge_partitioned_flag[current_largest_unsorted_edge_index] = 0
+                current_partition_space = current_partition_space - diff.shape[0]
+
+
+                # increment the largest edge index if not arrived at the end
+                if current_largest_sorted_edge_index + 1 < num_edges:
+                    current_largest_sorted_edge_index = current_largest_sorted_edge_index + 1
+                    current_largest_unsorted_edge_index = edge_indices_sorted[0, current_largest_sorted_edge_index]
+
+                else:
+                    break
+
+            # else put as much as does fit hence filling partition and create new one
+            else:
+                rounded_space = int(current_partition_space)
+                part = np.concatenate((part, diff[:rounded_space]), axis=None)
+                vertex_partitioned_flag[diff[:rounded_space]] = 0
+                # print(vertex_partitioned_flag)
+                partition_list.append(part)
+                num_partitioned = num_partitioned + len(part)
+                # print(partition_list)
+                print(f'new partition size: {len(part)}; partition_list: {len(partition_list)}; num_partitioned: {num_partitioned}')
+
+                # create new part
+                part = np.empty(0, dtype=int)
+                current_partition_space = max_partition_size
+
+                # if vertex_partitioned_flag.sum() == 0:
+                #     break
+
+        return partition_list, part, num_partitioned
 
     # print(partition_list)
     # partition_list.append(part)
+
+    partition_list, part, num_partitioned = partition(m_csr, k, num_partitioned, num_vertices, num_edges, max_partition_size, vertex_partitioned_flag, 
+        current_largest_unsorted_edge_index, current_partition_space, current_largest_sorted_edge_index, edge_partitioned_flag, edge_indices_sorted)
+    
+    print(f"Time to partition : {time.perf_counter()-start} s.")
     print(f'num_partitioned = {num_partitioned}')
     partition_list = [set(partitions) for partitions in partition_list]
     print(f'num_partitions = {len(partition_list)}')

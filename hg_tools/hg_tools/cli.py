@@ -2,7 +2,7 @@
 
 import click
 
-from hg_tools.commands import split, check
+from hg_tools.commands import split, check, quality
 
 
 @click.group()
@@ -12,6 +12,7 @@ def main():  # noqa
 
 main.add_command(split)
 main.add_command(check)
+main.add_command(quality)
 
 
 if __name__ == "__main__":
