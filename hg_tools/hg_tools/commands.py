@@ -4,7 +4,7 @@ import click
 import os
 import numpy as np
 
-from hg_tools.algorithm import random_partitioner, your_awesome_partitioner
+from hg_tools.algorithm import random_partitioner, your_awesome_partitioner, your_awesome_partitioner_jit
 from hg_tools.io import Partition, read_hypergraph
 from hg_tools.evaluate import (
     calculate_load_imbalance,
@@ -152,3 +152,30 @@ def quality(hg_folder_name, k, epsilon):
     print(f"Total cost : {cost}")
 
     return 0
+
+def split2(hg_filename, k, epsilon):
+    """Hypergraph partitioner that returns a partition of size K that is epsilon-balanced."""
+    click.echo("*********************************************************************")
+    click.echo("* Hypergraph partitioner")
+    click.echo(f"* Hypergraph used           : {hg_filename}")
+    click.echo(f"* Size of partition (K)     : {k}")
+    click.echo(f"* Imbalance ratio (epsilon) : {epsilon}")
+    click.echo("*********************************************************************")
+    filename = click.format_filename(hg_filename)
+    graph_name = Path(filename).stem
+
+    print(f"Reading file {filename}...")
+    hg_coo_matrix = read_hypergraph(filename)
+
+    print("Run partitionerer")
+    # partition = random_partitioner(hg_coo_matrix, k, epsilon)
+    partition = your_awesome_partitioner(hg_coo_matrix, k, epsilon)
+
+    output_file = f"{graph_name}.{k}.output"
+    print(f"Write {k}-partition to file: {output_file}.mtx")
+    partition.write(f"output/{output_file}")
+
+    return 0
+
+if __name__ == "__main__":
+    split2('../HYPER_PUBLIC/G3_circuit.mtx',"3","0.1")
